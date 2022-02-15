@@ -42,15 +42,21 @@ def get_square(n, board):
     return squish(row_1 + row_2 + row_3)
 
 def print_board(board):
-    print("= = =   = = =   = = =")
+    # if debug == False:
+    #     print("= = =   = = =   = = =")
+    #     for i in range(len(board)):
+    #         print(".", end=' ') if board[i] == '' else print(board[i],end=' ')
+    #         if (i+1) % 3 == 0: print("|", end=' ')
+    #         if (i+1) % 9 == 0: print("")
+    #         if (i+1) % 27 == 0: print("- - -   - - -   - - -")
+    # else: 
     for i in range(len(board)):
-        print(".", end=' ') if board[i] == '' else print(board[i],end=' ')
-        if (i+1) % 3 == 0: print("|", end=' ')
-        if (i+1) % 9 == 0: print("")
-        if (i+1) % 27 == 0: print("- - -   - - -   - - -")
+        print(".", end='') if board[i] == '' else print(board[i],end='')
+        if (i+1) % 9 == 0: print(" ", end=' ')
+    print('')
 
 # open the file
-f = open("easy.txt", "r")
+f = open("hard.txt", "r")
 original_board = f.read()
 print(len(original_board))
 
@@ -64,34 +70,36 @@ for space in original_board:
 print_board(original_board)
 print_board(working_board)
 
-
+debug = False
 forward = True
 current_square = 0;
 all_values = {'1','2','3','4','5','6','7','8','9'}
 working_values = {}
 
 while not solved(working_board):
-    print("<------------------------------------------------------------------------\n")
-    print(working_board[current_square])
-    print(original_board[current_square])
-    print("current_square " + str(current_square))
-    print(get_row(current_square, working_board))
-    print(get_column(current_square, working_board))
-    print(get_square(current_square, working_board))
-    print("------------------------------------------------------------------------>\n")
-
+    if debug == True:
+        print("<------------------------------------------------------------------------\n")
+        print(working_board[current_square])
+        print(original_board[current_square])
+        print("current_square " + str(current_square))
+        print(get_row(current_square, working_board))
+        print(get_column(current_square, working_board))
+        print(get_square(current_square, working_board))
 
     if working_board[current_square] == original_board[current_square]:
         current_square = current_square+1 if forward else current_square-1
         continue
 
-    if working_board[current_square] == '':
+    if current_square not in working_values:
+        if debug == True: print("Initializing")
         working_values[current_square] = {
+          "visited" : 1,
           "possible_values" : set(),
           "used_values" : set(),
           "tried_values" : set()
         }
     else:
+        working_values[current_square]["visited"] += 1 
         working_values[current_square]["tried_values"].add(working_board[current_square])
         working_board[current_square] = ''
 
@@ -103,11 +111,17 @@ while not solved(working_board):
     working_values[current_square]["possible_values"] = possible_values
     working_values[current_square]["used_values"] = used_values
 
-    print(f"used_values: {used_values}")
-    print(f"possible_values: {possible_values}")
-    print(f"tried_values: {working_values[current_square]['tried_values']}")
+    if debug == True:
+        print(f"used_values: {used_values}")
+        print(f"possible_values: {possible_values}")
+        print(f"tried_values: {working_values[current_square]['tried_values']}")
+        print(f"visited: {working_values[current_square]['visited']}")
+
+        if working_values[current_square]["visited"] > 9:
+            print("We've entered the twilight zone")
 
     if len(possible_values) == 0:
+        working_values[current_square]['tried_values'] = set()
         forward = False
  
         if current_square == 0:
@@ -115,14 +129,20 @@ while not solved(working_board):
             break
 
         current_square = current_square - 1
+        
         print_board(working_board)
+
         continue
     else:
         forward = True
         working_board[current_square] = possible_values.pop()
-        print(f"setting square {current_square} to {working_board[current_square]}")
+        if debug == True:
+            print(f"setting square {current_square} to {working_board[current_square]}")
+            print("------------------------------------------------------------------------>\n")
+
         current_square = current_square + 1
         continue
+
 
 print_board(original_board)
 print_board(working_board)
